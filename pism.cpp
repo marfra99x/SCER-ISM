@@ -42,7 +42,7 @@ ll BipGraph::hopcroftKarp()
     }
     for (ll u = 0; u < m; u++)
     {
-        printf("%lld - %lld\n", u, pairU[u]);
+        //printf("%lld - %lld\n", u, pairU[u]);
     }
     return result;
 }
@@ -168,8 +168,8 @@ bool matchesAt(const vector<string> &text, const string &pattern, int sigma_p_y_
     for (int i = 0; i < sigma_p_x_len; i++)
     {
         char c = sigma_p_x[i];
-        cout << i << " " << c - 'A' << ": ";
-        printBinary(all_bitmask[c - 'A']);
+        //cout << i << " " << c - 'A' << ": ";
+        //printBinary(all_bitmask[c - 'A']);
         if (!isFixed(c) && all_bitmask[c - 'A'] == 0)
         {
             return false;
@@ -180,6 +180,7 @@ bool matchesAt(const vector<string> &text, const string &pattern, int sigma_p_y_
 
     BipGraph graph(sigma_p_x_len, sigma_p_y_len);
 
+    
     for (int i = 0; i < sigma_p_x_len; i++)
     {
         for (int j = 0; j < sigma_p_y_len; j++)
@@ -190,13 +191,14 @@ bool matchesAt(const vector<string> &text, const string &pattern, int sigma_p_y_
             {
                 int u = c + 'A' - 'F';
                 graph.addEdge(u, v);
-                cout << "v -> " << (char)(c + 'A') << " " << (char)(v + 'A') << endl;
+                //cout << "v -> " << (char)(c + 'A') << " " << (char)(v + 'A') << endl;
             }
         }
     }
+    
     int res = graph.hopcroftKarp();
 
-    cout << "m:" << res << endl;
+    //cout << "m:" << res << endl;
 
     if (res == sigma_p_x_len)
         return true;
@@ -215,7 +217,7 @@ int main()
     string sigma_p_x = "FGH";
 
     // Check if pattern p-matches the indeterminate text
-    cout << (matchesAt(y, x, sigma_p_y_len, sigma_p_x_len, sigma_p_y, sigma_p_x) ? "P-Match" : "No Match") << endl;
+    cout << (matchesAt(y, x, sigma_p_y_len, sigma_p_x_len, sigma_p_y, sigma_p_x) ? "P-Match Found" : "No P-Match") << endl;
 
     return 0;
 }
