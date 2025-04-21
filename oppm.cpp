@@ -145,9 +145,10 @@ int main()
     old_time = 0;
     int minExponent = 1;
     int maxExponent = 30;
-    int r = 2;
+    int r = 32;
+    int n_tsk = 100;
 
-    for (int tsk = 0; tsk < 50; tsk++)
+    for (int tsk = 0; tsk < n_tsk; tsk++)
     {
         cout << tsk << endl;
         vector<int> S(size);
@@ -189,8 +190,8 @@ int main()
 
     }
     
-    cout << "Searching Time NEW: " << new_time/500.0 << " ms" << endl;
-    cout << "Searching Time OLD: " << old_time/500.0 << " ms" << endl;
+    cout << "Searching Time NEW: " << new_time/(double)(n_tsk) << " ms" << endl;
+    cout << "Searching Time OLD: " << old_time/(double)(n_tsk) << " ms" << endl;
     cout << endl
          << endl
          << "New is: " << (old_time - new_time) / old_time * 100 << "\% faster" << endl;

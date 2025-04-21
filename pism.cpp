@@ -1,8 +1,21 @@
 #include <iostream>
 #include <vector>
+#include <random>
 #include <unordered_map>
+#include <cstdlib> // for srand, rand
+#include <vector>
+#include <bitset>
+#include <algorithm>
+#include <fstream>
+#include <set>
+#include <map>
+#include <sstream>
+#include <numeric> // Include this for iota
+#include <ctime>   // For clock timing
+#include <chrono>  // High precision timing
 
 using namespace std;
+using namespace chrono;
 
 const int FIXED_ALPHABET_SIZE = 12; // 'a-l'
 const int PARAM_ALPHABET_SIZE = 12; // 'A-L'
@@ -42,7 +55,7 @@ ll BipGraph::hopcroftKarp()
     }
     for (ll u = 0; u < m; u++)
     {
-        //printf("%lld - %lld\n", u, pairU[u]);
+        // printf("%lld - %lld\n", u, pairU[u]);
     }
     return result;
 }
@@ -140,6 +153,11 @@ int createBitwiseText(const string &indeterminateText)
 // Function to check if the pattern p-matches the indeterminate text
 bool matchesAt(const vector<string> &text, const string &pattern, int sigma_p_y_len, int sigma_p_x_len, string sigma_p_y, string sigma_p_x)
 {
+
+    char f_x = sigma_p_x[0];
+    char f_y = sigma_p_y[0];
+
+    // cout << "f: " << f_y << " " << f_x << endl;
     int n = pattern.size();
     int all_bitmask[32];
 
@@ -158,7 +176,7 @@ bool matchesAt(const vector<string> &text, const string &pattern, int sigma_p_y_
             continue;
         }
 
-        int index = (int)c - 'A';
+        int index = (int)c - f_y;
         int bit = createBitwiseText(text[i]);
 
         all_bitmask[index] &= bit;
@@ -168,8 +186,8 @@ bool matchesAt(const vector<string> &text, const string &pattern, int sigma_p_y_
     for (int i = 0; i < sigma_p_x_len; i++)
     {
         char c = sigma_p_x[i];
-        //cout << i << " " << c - 'A' << ": ";
-        //printBinary(all_bitmask[c - 'A']);
+        // cout << i << " " << c - 'A' << ": ";
+        // printBinary(all_bitmask[c - 'A']);
         if (!isFixed(c) && all_bitmask[c - 'A'] == 0)
         {
             return false;
@@ -180,25 +198,24 @@ bool matchesAt(const vector<string> &text, const string &pattern, int sigma_p_y_
 
     BipGraph graph(sigma_p_x_len, sigma_p_y_len);
 
-    
     for (int i = 0; i < sigma_p_x_len; i++)
     {
         for (int j = 0; j < sigma_p_y_len; j++)
         {
-            int c = sigma_p_x[i] - 'A';
-            int v = sigma_p_y[j] - 'A';
+            int c = sigma_p_x[i] - f_y;
+            int v = sigma_p_y[j] - f_y;
             if (all_bitmask[c] & (1 << v))
             {
-                int u = c + 'A' - 'F';
+                int u = c + f_y - f_x;
                 graph.addEdge(u, v);
-                //cout << "v -> " << (char)(c + 'A') << " " << (char)(v + 'A') << endl;
+                // cout << "v -> " << (char)(c + 'A') << " " << (char)(v + 'A') << endl;
             }
         }
     }
-    
+
     int res = graph.hopcroftKarp();
 
-    //cout << "m:" << res << endl;
+    // cout << "m:" << res << endl;
 
     if (res == sigma_p_x_len)
         return true;
@@ -207,17 +224,77 @@ bool matchesAt(const vector<string> &text, const string &pattern, int sigma_p_y_
 
 int main()
 {
-    // Example indeterminate text where each position can represent multiple characters
-    vector<string> y = {"A", "b", "CD", "ACE"};
-    string x = "FbGH"; // X, Y, Z are parameterized, 'b' is fixed
+    int n_tsk = 100;
+    auto start_time = high_resolution_clock::now();
+    auto end_time = high_resolution_clock::now();
+    auto total_time = duration<double, milli>(end_time - start_time).count();
+    for (int tsk = 0; tsk < n_tsk; tsk++)
+    {
+        cout << tsk << endl;
+        srand(time(NULL)); // seeds the PRNG with current time
+        int n = 100000;
+        // Example indeterminate text where each position can represent multiple characters
+        vector<string> y; //= {"A", "b", "CD", "ACE"};
+        string x;         //= "FbGH"; // X, Y, Z are parameterized, 'b' is fixed
 
-    int sigma_p_y_len = 4;
-    int sigma_p_x_len = 3;
-    string sigma_p_y = "ACDE";
-    string sigma_p_x = "FGH";
+        int sigma_p_y_len = 12;
+        int sigma_p_x_len = 12;
+        string sigma_p_y = "ABCDEFGHIJKL";
+        string sigma_p_x = "MNOPQRSTUVWX";
 
-    // Check if pattern p-matches the indeterminate text
-    cout << (matchesAt(y, x, sigma_p_y_len, sigma_p_x_len, sigma_p_y, sigma_p_x) ? "P-Match Found" : "No P-Match") << endl;
+        y.resize(n);
 
+        for (int i = 0; i < n; i++)
+        {
+            int r = rand() % 10;
+            // cout << "_" << i << " " << r << endl;
+            if (r == 0) // generate solid
+            {
+                char c = rand() % 12 + 'a';
+                y[i] = c;
+                x += c;
+            }
+            else // generate indeterminate
+            {
+                int k = rand() % 12 + 1;
+                string shuffled = sigma_p_y;
+                random_device rd;
+                mt19937 gen(rd());
+                shuffle(shuffled.begin(), shuffled.end(), gen);
+                // cout << k << endl;
+                // cout << shuffled << endl;
+
+                y[i] = shuffled.substr(0, k);
+                // cout << y[i] << endl;
+                x += shuffled[0] + 12;
+
+                // cout << "-> " << y[i] << " - " << x[i] << endl;
+            }
+        }
+
+        // cout << "here" << endl;
+
+        // cout << x << endl;
+
+        /*for(int i=0; i<n; i++){
+            cout << y[i] << endl;
+        }*/
+
+        // Check if pattern p-matches the indeterminate text
+
+        start_time = high_resolution_clock::now();
+        bool res = matchesAt(y, x, sigma_p_y_len, sigma_p_x_len, sigma_p_y, sigma_p_x);
+        end_time = high_resolution_clock::now();
+        total_time += duration<double, milli>(end_time - start_time).count();
+
+        /*
+        if (res)
+            cout << "P-Match Found" << endl;
+        else
+            cout << "No P-Match" << endl;
+        */
+    }
+
+    cout << "Searching Time: " << total_time / (double)(n_tsk) << " ms" << endl;
     return 0;
 }
