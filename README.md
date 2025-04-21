@@ -22,7 +22,7 @@ Our main contribution is a set of **bitwise-compatible** algorithms that:
 
 The algorithms are:
 - **Order-Preserving Matching**: `O(n)` time, in-place, with constant-time operations.
-- **Parameterized Matching**: `O(n + σp √(σp σs))` time via reduction to bipartite matching.
+- **Parameterized Matching**: `O(n + σ_p √(σ_p σ_s))` time via reduction to bipartite matching.
 
 ## 🛠 Code Structure
 
