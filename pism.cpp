@@ -17,9 +17,8 @@
 using namespace std;
 using namespace chrono;
 
-const int FIXED_ALPHABET_SIZE = 12; // 'a-l'
-const int PARAM_ALPHABET_SIZE = 12; // 'A-L'
-const int TOTAL_ALPHABET_SIZE = 24; // 12 fixed + 12 parameterized
+const int FIXED_ALPHABET_SIZE = 12;
+const int PARAM_ALPHABET_SIZE = 31;
 
 #define NIL 0
 #define INF INT_MAX
@@ -139,13 +138,13 @@ void printBinary(int num, int bits = 8)
 }
 
 // Function to create a bitwise representation of an indeterminate string
-int createBitwiseText(const string &indeterminateText)
+int createBitwiseText(const string &indeterminateText, char p)
 {
     int bitwiseText = 0;
 
     for (char c : indeterminateText)
     {
-        bitwiseText |= (1 << (c - 'A'));
+        bitwiseText |= (1 << (c - p));
     }
     return bitwiseText;
 }
@@ -157,13 +156,12 @@ bool matchesAt(const vector<string> &text, const string &pattern, int sigma_p_y_
     char f_x = sigma_p_x[0];
     char f_y = sigma_p_y[0];
 
-    // cout << "f: " << f_y << " " << f_x << endl;
     int n = pattern.size();
-    int all_bitmask[32];
+    int all_bitmask[PARAM_ALPHABET_SIZE];
 
-    for (int i = 0; i < 32; i++)
+    for (int i = 0; i < PARAM_ALPHABET_SIZE; i++)
     {
-        all_bitmask[i] = (1 << (PARAM_ALPHABET_SIZE + 1)) - 1;
+        all_bitmask[i] = (1 << (PARAM_ALPHABET_SIZE)) - 1;
     }
 
     for (int i = 0; i < n; i++)
@@ -176,9 +174,8 @@ bool matchesAt(const vector<string> &text, const string &pattern, int sigma_p_y_
             continue;
         }
 
-        int index = (int)c - f_y;
-        int bit = createBitwiseText(text[i]);
-
+        int index = (int)c - f_x;
+        int bit = createBitwiseText(text[i], f_y);
         all_bitmask[index] &= bit;
     }
 
@@ -186,13 +183,13 @@ bool matchesAt(const vector<string> &text, const string &pattern, int sigma_p_y_
     for (int i = 0; i < sigma_p_x_len; i++)
     {
         char c = sigma_p_x[i];
-        // cout << i << " " << c - 'A' << ": ";
-        // printBinary(all_bitmask[c - 'A']);
-        if (!isFixed(c) && all_bitmask[c - 'A'] == 0)
+        //printBinary(all_bitmask[c - f_x]);
+        if (!isFixed(c) && all_bitmask[c - f_x] == 0)
         {
             return false;
         }
     }
+
 
     ios_base::sync_with_stdio(false);
 
@@ -202,20 +199,13 @@ bool matchesAt(const vector<string> &text, const string &pattern, int sigma_p_y_
     {
         for (int j = 0; j < sigma_p_y_len; j++)
         {
-            int c = sigma_p_x[i] - f_y;
-            int v = sigma_p_y[j] - f_y;
-            if (all_bitmask[c] & (1 << v))
+            if (all_bitmask[i] & (1 << j))
             {
-                int u = c + f_y - f_x;
-                graph.addEdge(u, v);
-                // cout << "v -> " << (char)(c + 'A') << " " << (char)(v + 'A') << endl;
+                graph.addEdge(i+1, j+1);
             }
         }
     }
-
     int res = graph.hopcroftKarp();
-
-    // cout << "m:" << res << endl;
 
     if (res == sigma_p_x_len)
         return true;
@@ -237,10 +227,11 @@ int main()
         vector<string> y; //= {"A", "b", "CD", "ACE"};
         string x;         //= "FbGH"; // X, Y, Z are parameterized, 'b' is fixed
 
-        int sigma_p_y_len = 12;
-        int sigma_p_x_len = 12;
-        string sigma_p_y = "ABCDEFGHIJKL";
-        string sigma_p_x = "MNOPQRSTUVWX";
+        int sigma_p_y_len = PARAM_ALPHABET_SIZE;
+        int sigma_p_x_len = PARAM_ALPHABET_SIZE;
+        string sigma_p_y = "!\"#$%&'()*+,-./0123456789:;<=>?@";
+        string sigma_p_x = "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`";
+
 
         y.resize(n);
 
@@ -250,14 +241,14 @@ int main()
             // cout << "_" << i << " " << r << endl;
             if (r == 0) // generate solid
             {
-                char c = rand() % 12 + 'a';
+                char c = rand() % FIXED_ALPHABET_SIZE + 'a';
                 y[i] = c;
                 x += c;
             }
             else // generate indeterminate
             {
-                int k = rand() % 12 + 1;
-                string shuffled = sigma_p_y;
+                int k = (rand() % PARAM_ALPHABET_SIZE) + 1;
+                string shuffled = sigma_p_y.substr(0,PARAM_ALPHABET_SIZE);
                 random_device rd;
                 mt19937 gen(rd());
                 shuffle(shuffled.begin(), shuffled.end(), gen);
@@ -266,19 +257,22 @@ int main()
 
                 y[i] = shuffled.substr(0, k);
                 // cout << y[i] << endl;
-                x += shuffled[0] + 12;
+                x += shuffled[0] + 32;
 
-                // cout << "-> " << y[i] << " - " << x[i] << endl;
+                //cout << "-> " << y[i] << " - " << x[i] << endl;
             }
         }
-
-        // cout << "here" << endl;
-
-        // cout << x << endl;
-
-        /*for(int i=0; i<n; i++){
+        /*
+        cout << "here" << endl;
+        
+        cout << x << endl;
+        
+        for(int i=0; i<n; i++){
             cout << y[i] << endl;
-        }*/
+        }
+        cout << "there" << endl;
+        */
+        
 
         // Check if pattern p-matches the indeterminate text
 
@@ -287,12 +281,13 @@ int main()
         end_time = high_resolution_clock::now();
         total_time += duration<double, milli>(end_time - start_time).count();
 
-        /*
-        if (res)
+        
+        /*if (res)
             cout << "P-Match Found" << endl;
         else
             cout << "No P-Match" << endl;
         */
+       if(!res)cout<<"err"<<endl;
     }
 
     cout << "Searching Time: " << total_time / (double)(n_tsk) << " ms" << endl;
